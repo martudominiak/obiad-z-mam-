@@ -1,0 +1,328 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Menu + mapa spotkania · sobota 14.06.2026 · 16:00 · z psem 🐾</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+<style>
+  :root{
+    --paper:#faf5ec; --card:#fffdf7; --ink:#2b2118; --muted:#7a6c5d;
+    --accent:#b54a26; --gold:#a8833b; --green:#3e6b48; --blue:#2b5ea7; --orange:#e8761f;
+    --line:#d9cdb8;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--paper);color:var(--ink);
+       font-family:Georgia,'Times New Roman',serif;line-height:1.55;
+       background-image:radial-gradient(#efe7d8 1px,transparent 1px);background-size:22px 22px;}
+  .menu{max-width:900px;margin:28px auto;padding:38px 44px;background:var(--card);
+        border:2px solid var(--ink);outline:6px double var(--gold);outline-offset:6px;}
+  header{text-align:center;border-bottom:1px solid var(--line);padding-bottom:18px;margin-bottom:22px;}
+  .orn{color:var(--gold);letter-spacing:.4em;font-size:14px}
+  h1{font-size:33px;margin:8px 0 4px;letter-spacing:.05em;text-transform:uppercase}
+  .sub{color:var(--muted);font-style:italic}
+  .pill{display:inline-block;border:1px solid var(--line);border-radius:999px;padding:2px 12px;margin:4px 3px;font-size:13.5px;background:#fbf7ee}
+  h2{font-size:15px;text-transform:uppercase;letter-spacing:.32em;text-align:center;color:var(--accent);margin:34px 0 14px}
+  h2::before,h2::after{content:" ✦ ";color:var(--gold)}
+  .lead{background:#f4ecdd;border:1px solid var(--line);border-left:5px solid var(--accent);padding:14px 18px;font-size:15.5px}
+  .lead b{color:var(--accent)}
+  .warn{background:#fdf3e3;border:1px solid var(--line);border-left:5px solid var(--gold);padding:12px 16px;font-size:14.5px;margin-top:12px}
+  /* MAPA */
+  #map{height:560px;border:2px solid var(--ink);margin-top:6px;background:#dfe7ee;z-index:0}
+  .mapbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:4px 0 12px}
+  .mapbar .grp{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-right:2px}
+  .vbtn{font-family:inherit;font-size:14px;cursor:pointer;border:1.5px solid var(--ink);background:#fffdf7;
+        padding:6px 14px;border-radius:5px;color:var(--ink);transition:.15s}
+  .vbtn:hover{background:#f1e7d4}
+  .vbtn.on{color:#fff}
+  .vbtn[data-v="shuk"].on{background:var(--accent);border-color:var(--accent)}
+  .vbtn[data-v="sato"].on{background:#7a5a96;border-color:#7a5a96}
+  .vbtn[data-v="lolek"].on{background:var(--green);border-color:var(--green)}
+  .vbtn[data-v="filtry"].on{background:var(--gold);border-color:var(--gold)}
+  .vbtn[data-v="all"].on{background:#444;border-color:#444}
+  .maplegend{font-size:13px;background:#fbf7ee;border:1px solid var(--line);padding:10px 14px;margin-top:10px;
+             display:flex;flex-wrap:wrap;gap:6px 20px}
+  .maplegend span{display:inline-flex;align-items:center;gap:7px}
+  .sw{width:26px;height:5px;border-radius:3px;display:inline-block}
+  .dot{width:14px;height:14px;border-radius:50%;display:inline-block;border:2px solid #fff;box-shadow:0 0 0 1px #999}
+  .caption{font-size:12.5px;color:var(--muted);text-align:center;margin-top:8px;font-style:italic}
+  /* markery */
+  .mk{display:flex;align-items:center;justify-content:center;font-weight:bold;color:#fff;
+      border:2.5px solid #fff;border-radius:50%;box-shadow:0 1px 4px rgba(0,0,0,.4);font-family:Verdana,sans-serif}
+  .mk-home{background:#2b2118;width:30px;height:30px;font-size:15px;border-radius:8px}
+  .mk-metro{background:#2b5ea7;width:18px;height:18px;font-size:11px}
+  .leaflet-popup-content{font-family:Georgia,serif;font-size:13.5px;line-height:1.45}
+  .leaflet-popup-content b{font-size:15px}
+  .leaflet-popup-content a{color:var(--blue)}
+  /* tabela */
+  table.sum{width:100%;border-collapse:collapse;font-size:14px;margin-top:8px}
+  table.sum th,table.sum td{border:1px solid var(--line);padding:7px 9px;text-align:center}
+  table.sum th{background:#f4ecdd;font-size:12px;text-transform:uppercase;letter-spacing:.05em}
+  table.sum td.win{background:#e8f0e6;font-weight:bold;color:var(--green)}
+  table.sum .v{text-align:left;font-weight:bold}
+  /* karty */
+  .dish{border-bottom:1px dashed var(--line);padding:20px 2px 22px}
+  .dish:last-of-type{border-bottom:none}
+  .dish-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+  .dish-head h3{font-size:21px;margin:0}
+  .leader{flex:1;border-bottom:2px dotted var(--line);transform:translateY(-5px);min-width:24px}
+  .price{font-size:15.5px;color:var(--accent);font-weight:bold;white-space:nowrap}
+  .badge{font-size:11px;letter-spacing:.1em;text-transform:uppercase;background:var(--accent);color:#fff;border-radius:3px;padding:2.5px 8px;vertical-align:3px}
+  .badge.alt{background:var(--green)}
+  .meta{font-size:14px;color:var(--muted);margin:6px 0 2px}
+  .addr{font-size:14px;margin:2px 0 8px}
+  .addr a{color:var(--blue)}
+  .desc{margin:6px 0 12px;font-size:15.5px}
+  .go{display:inline-flex;gap:6px;flex-wrap:wrap;margin:6px 0 2px}
+  .go a{font-size:12.5px;text-decoration:none;border:1px solid var(--line);border-radius:5px;padding:5px 10px;background:#fbf7ee;color:var(--ink);white-space:nowrap}
+  .go a:hover{background:#f1e7d4}
+  .go a.drv{border-color:#d9b48f}
+  .go a.trn{border-color:#9fb6d6}
+  .note{font-size:13.5px;color:var(--muted);background:#faf3e3;border:1px dashed var(--line);padding:8px 12px;margin-top:10px}
+  .cols{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+  ul.tips{margin:8px 0;padding-left:20px;font-size:14.5px}
+  ul.tips li{margin-bottom:6px}
+  @media(max-width:720px){.cols{grid-template-columns:1fr}.menu{padding:22px 15px}#map{height:62vh}}
+  footer{margin-top:30px;border-top:1px solid var(--line);padding-top:14px;font-size:12px;color:var(--muted)}
+  footer a{color:var(--blue);text-decoration:none}
+</style>
+</head>
+<body>
+<div class="menu">
+
+  <header>
+    <div class="orn">✦ ✦ ✦</div>
+    <h1>Menu &amp; mapa spotkania</h1>
+    <div class="sub">sobota, 14 czerwca 2026 · godz. 16:00</div>
+    <div style="margin-top:10px">
+      <span class="pill">🏠 Ty — Szańcowa (Wola)</span>
+      <span class="pill">🏠 Mama — Etiudy Rewolucyjnej / Woronicza (Mokotów)</span>
+      <span class="pill">🐾 z pieskiem</span>
+      <span class="pill">💰 dobrze i niedrogo</span>
+    </div>
+  </header>
+
+  <div class="lead">
+    <b>Rekomendacja: SHUK mezze &amp; bar (Grójecka 107)</b> — leży najbliżej środka między Wami, jest dog-friendly,
+    oceniony 4,5/5 i w sobotę otwarty 10:00–24:00. Realnie autem: <b>Ty ~10 min, mama ~6 min</b>;
+    komunikacją oboje ~30–40 min. Mapa niżej pokazuje prawdziwe trasy — kliknij lokal, żeby je nałożyć.
+  </div>
+
+  <div class="warn">
+    ⚖️ <b>Szczera uwaga o „tym samym czasie dojazdu":</b> policzyłem realne trasy (OSRM/OpenStreetMap) — <b>autem mama jest wszędzie bliżej</b>
+    (~5–7 min) niż Ty (~10–12 min), bo wszystkie 4 lokale leżą po jej stronie miasta. Idealnie równo autem nie wyjdzie.
+    Najbliżej „po równo": <b>Filtry Café</b> (11 vs 7 min). Jeśli zależy Wam na zrównaniu czasu — najprościej tak, że
+    <b>Ty jedziesz autem (~10 min), a mama dochodzi pieszo/tramwajem (~20–35 min)</b>, albo oboje jedziecie komunikacją (~30–40 min każde).
+  </div>
+
+  <h2>Mapa · trasy i komunikacja</h2>
+  <div class="mapbar">
+    <span class="grp">Pokaż dojazd do:</span>
+    <button class="vbtn on" data-v="shuk">① SHUK</button>
+    <button class="vbtn" data-v="sato">② SATO</button>
+    <button class="vbtn" data-v="lolek">③ LOLEK</button>
+    <button class="vbtn" data-v="filtry">④ Filtry</button>
+    <button class="vbtn" data-v="all">Wszystkie naraz</button>
+  </div>
+  <div id="map"></div>
+  <div class="maplegend">
+    <span><i class="sw" style="background:#e8761f"></i> trasa autem — Ty (Szańcowa)</span>
+    <span><i class="sw" style="background:#2b5ea7"></i> trasa autem — Mama (Etiudy)</span>
+    <span><i class="sw" style="background:#c1502e;height:4px;border:1px dashed #c1502e;background:repeating-linear-gradient(90deg,#c1502e 0 6px,transparent 6px 10px)"></i> korytarz tramwajowy (Grójecka/Ochota)</span>
+    <span><i class="sw" style="background:#1f7a3a"></i> metro M1 (spina mamy)</span>
+    <span><i class="dot" style="background:#2b2118"></i> domy</span>
+    <span><i class="dot" style="background:#b54a26"></i> lokale</span>
+  </div>
+  <div class="caption">Mapa: © OpenStreetMap. Trasy samochodowe policzone realnie (OSRM) od drzwi do drzwi. Metro M1 i tramwaj narysowane po prawdziwych przystankach. Kliknij znacznik = szczegóły + nawigacja.</div>
+
+  <h2>Bilans dojazdów (realne dane)</h2>
+  <table class="sum">
+    <tr><th>Miejsce</th><th>🚗 Ty</th><th>🚗 Mama</th><th>🚋 komunikacja (orient.)</th><th>🐾 pies</th><th>🕐 sobota</th></tr>
+    <tr><td class="v">① SHUK</td><td class="win">~10 min · 6,6 km</td><td class="win">~6 min · 2,9 km</td><td>~30–40 min / ~30–35 min</td><td>tak</td><td>10–24</td></tr>
+    <tr><td class="v">② SATO gotuje</td><td>~11 min · 6,7 km</td><td>~6 min · 2,7 km</td><td>~40 min / ~35 min</td><td>dopytać</td><td>13–21</td></tr>
+    <tr><td class="v">③ LOLEK</td><td>~12 min · 7,4 km</td><td>~6 min · 3,0 km</td><td>~40 min / ~22 min</td><td>tak 🐾🐾</td><td>11–późno</td></tr>
+    <tr><td class="v">④ Filtry Café</td><td>~11 min · 6,6 km</td><td>~7 min · 3,8 km</td><td>~33 min / ~35 min</td><td>tak 🐾🐾</td><td>9–21</td></tr>
+  </table>
+  <div class="caption">Czasy autem = OSRM bez korków (w sobotę po południu blisko prawdy). Komunikacja = szacunek — kliknij „🚋 dojazd" w karcie, żeby Google policzył na żywo.</div>
+
+  <h2>Dania główne</h2>
+
+  <!-- 1 SHUK -->
+  <article class="dish">
+    <div class="dish-head"><h3>① SHUK mezze &amp; bar <span class="badge">rekomendacja</span></h3><span class="leader"></span><span class="price">~50–80 zł/os.</span></div>
+    <div class="meta">🥙 bliskowschodnia (hummusy, falafel, szakszuka, mezze do dzielenia) · ⭐ 4,5/5 (300+ opinii) · 🐾 dog-friendly · 🕙 sob. 10:00–24:00</div>
+    <p class="addr">📍 Grójecka 107 (róg Bitwy Warszawskiej 1920 r.) · ☎ 601 082 261</p>
+    <p class="desc">Najbliżej środka Waszej trasy. Mezze świetnie dzieli się na dwie osoby — wychodzi taniej i wegetariańsko, i mięsnie. Ogródek = pies bez problemu.</p>
+    <div class="go">
+      <a class="drv" target="_blank" href="https://www.google.com/maps/dir/?api=1&amp;origin=52.2378642,20.9328561&amp;destination=52.2065539,20.9736058&amp;travelmode=driving">🚗 Ty autem →</a>
+      <a class="trn" target="_blank" href="https://www.google.com/maps/dir/?api=1&amp;origin=52.2378642,20.9328561&amp;destination=52.2065539,20.9736058&amp;travelmode=transit">🚋 Ty dojazd →</a>
+      <a class="drv" target="_blank" href="https://www.google.com/maps/dir/?api=1&amp;origin=52.1917692,20.9902891&amp;destination=52.2065539,20.9736058&amp;travelmode=driving">🚗 Mama autem →</a>
+      <a class="trn" target="_blank" href="https://www.google.com/maps/dir/?api=1&amp;origin=52.1917692,20.9902891&amp;destination=52.2065539,20.9736058&amp;travelmode=transit">🚋 Mama dojazd →</a>
+    </div>
+    <p class="note">☝ Weekendami pełno — warto zadzwonić po stolik (w ogródku z psem bez gadania; do środka dopytajcie). Sobota = parking bezpłatny.</p>
+  </article>
+
+  <!-- 2 SATO -->
+  <article class="dish">
+    <div class="dish-head"><h3>② SATO gotuje</h3><span class="leader"></span><span class="price">~40–55 zł/os.</span></div>
+    <div class="meta">🍜 japońska domowa (ręcznie krojony udon, donburi, onigiri) · ⭐ świetne recenzje · 🐾 dopytać telefonicznie · 🕐 sob. 13:00–21:00</div>
+    <p class="addr">📍 Pawińskiego 24 (Rakowiec) · ☎ 518 600 281</p>
+    <p class="desc">Kultowy mały bar — jeden z najlepszych udonów w mieście w cenach barowych. O 16:00 traficie przed wieczornym szczytem (wieczorami bywają kolejki).</p>
+    <div class="go">
+      <a class="drv" target="_blank" href="https://www.google.com/maps/dir/?api=1&amp;origin=52.2378642,20.9328561&amp;destination=52.2038129,20.9750101&amp;travelmode=driving">🚗 Ty autem →</a>
+      <a class="trn" target="_blank" href="https://www.google.com/maps/dir/?api=1&amp;origin=52.2378642,20.9328561&amp;destination=52.2038129,20.9750101&amp;travelmode=transit">🚋 Ty dojazd →</a>
+      <a class="drv" target="_blank" href="https://www.google.com/maps/dir/?api=1&amp;origin=52.1917692,20.9902891&amp;destination=52.2038129,20.9750101&amp;travelmode=driving">🚗 Mama autem →</a>
+      <a class="trn" target="_blank" href="https://www.google.com/maps/dir/?api=1&amp;origin=52.1917692,20.9902891&amp;destination=52.2038129,20.9750101&amp;travelmode=transit">🚋 Mama dojazd →</a>
+    </div>
+    <p class="note">☝ Lokal jest mały, psia polityka nieopisana — <b>zadzwońcie przed wyjściem</b>. SHUK jest 5 min stamtąd autem jako plan B.</p>
+  </article>
+
+  <!-- 3 LOLEK -->
+  <article class="dish">
+    <div class="dish-head"><h3>③ LOLEK grill &amp; bar <span class="badge alt">najlepsze dla psa</span></h3><span class="leader"></span><span class="price">~40–65 zł/os.</span></div>
+    <div class="meta">🍖 grill w środku parku Pole Mokotowskie · ⭐ oceny dobre (klimat &gt; finezja) · 🐾🐾 beczka z wodą, miski, ogród · 🕚 sob. 11:00–późno</div>
+    <p class="addr">📍 Rokitnicka 20, Pole Mokotowskie · ☎ 602 685 795</p>
+    <p class="desc">Opcja „obiad + spacer": czerwcowe popołudnie w parku, pies wybiega się przed i po, do tego mięsa z grilla i bar dodatków. Mama ma tu najprościej z komunikacją (metro M1 + spacer).</p>
+    <div class="go">
+      <a class="drv" target="_blank" href="https://www.google.com/maps/dir/?api=1&amp;origin=52.2378642,20.9328561&amp;destination=52.2117627,20.9934909&amp;travelmode=driving">🚗 Ty autem →</a>
+      <a class="trn" target="_blank" href="https://www.google.com/maps/dir/?api=1&amp;origin=52.2378642,20.9328561&amp;destination=52.2117627,20.9934909&amp;travelmode=transit">🚋 Ty dojazd →</a>
+      <a class="drv" target="_blank" href="https://www.google.com/maps/dir/?api=1&amp;origin=52.1917692,20.9902891&amp;destination=52.2117627,20.9934909&amp;travelmode=driving">🚗 Mama autem →</a>
+      <a class="trn" target="_blank" href="https://www.google.com/maps/dir/?api=1&amp;origin=52.1917692,20.9902891&amp;destination=52.2117627,20.9934909&amp;travelmode=transit">🚋 Mama dojazd →</a>
+    </div>
+    <p class="note">☝ Jedzenie solidne, ale płaci się też „za miejscówkę". Najlepszy wybór, jeśli priorytetem jest komfort psa.</p>
+  </article>
+
+  <h2>Coś lżejszego</h2>
+
+  <!-- 4 FILTRY -->
+  <article class="dish">
+    <div class="dish-head"><h3>④ Filtry Café <span class="badge alt">najrówniej autem</span></h3><span class="leader"></span><span class="price">~20–40 zł/os.</span></div>
+    <div class="meta">☕ kultowa kawiarnia Ochoty: kanapki, quiche, domowe ciasta, świetna kawa · ⭐ wysokie oceny od lat · 🐾🐾 psy mile widziane · 🕘 sob. 9:00–21:00</div>
+    <p class="addr">📍 Niemcewicza 3 (przy pl. Narutowicza)</p>
+    <p class="desc">Na „kawa, ciasto i pogadać" zamiast pełnego obiadu. Z całej czwórki czasy autem ma najbardziej zbliżone (11 vs 7 min).</p>
+    <div class="go">
+      <a class="drv" target="_blank" href="https://www.google.com/maps/dir/?api=1&amp;origin=52.2378642,20.9328561&amp;destination=52.2200061,20.9878347&amp;travelmode=driving">🚗 Ty autem →</a>
+      <a class="trn" target="_blank" href="https://www.google.com/maps/dir/?api=1&amp;origin=52.2378642,20.9328561&amp;destination=52.2200061,20.9878347&amp;travelmode=transit">🚋 Ty dojazd →</a>
+      <a class="drv" target="_blank" href="https://www.google.com/maps/dir/?api=1&amp;origin=52.1917692,20.9902891&amp;destination=52.2200061,20.9878347&amp;travelmode=driving">🚗 Mama autem →</a>
+      <a class="trn" target="_blank" href="https://www.google.com/maps/dir/?api=1&amp;origin=52.1917692,20.9902891&amp;destination=52.2200061,20.9878347&amp;travelmode=transit">🚋 Mama dojazd →</a>
+    </div>
+    <p class="note">☝ To kawiarnia, nie restauracja — na konkretny obiad wybierzcie ①–③, na leniwe popołudnie: idealna.</p>
+  </article>
+
+  <h2>Plan B i praktyczne</h2>
+  <div class="cols">
+    <div>
+      <b>Gdyby gdzieś było pełno:</b>
+      <ul class="tips">
+        <li><b>Jeff's Pole Mokotowskie</b> (Żwirki i Wigury 32, sob. 9:00–24:00) — burgery/żeberka przy parku, duży ogródek; drożej. Zaznaczony na mapie ★.</li>
+        <li>Okolica <b>pl. Narutowicza i Filtrowej</b> to zagłębie knajp — w 5 min spacerem od Filtry Café zawsze coś wolnego.</li>
+      </ul>
+    </div>
+    <div>
+      <b>Dobre wieści logistyczne:</b>
+      <ul class="tips">
+        <li>🅿️ <b>Sobota = parkowanie bezpłatne</b> (strefa płatna działa pn.–pt.).</li>
+        <li>🚇 Mama: do metra Wierzbno z Etiudy ~10 min pieszo, dalej M1 na północ.</li>
+        <li>🚋 Ty: najszybciej autem; komunikacją bus z al. Prymasa Tysiąclecia + tramwaj na Ochotę.</li>
+        <li>🌤️ Czerwiec — wszędzie ogródki, z psem zero stresu.</li>
+      </ul>
+    </div>
+  </div>
+
+  <footer>
+    Dane lokali zebrane 13.06.2026; trasy auta policzone z <a href="https://project-osrm.org/">OSRM</a> na danych <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>.
+    Godziny/oceny: <a href="https://teraz-otwarte.pl/warszawa/shuk-mezze-bar-591138">SHUK</a> ·
+    <a href="https://teraz-otwarte.pl/warszawa/sato-gotuje-380151">SATO</a> ·
+    <a href="https://mowianamiescie.pl/miejsca/1066-pub-lolek">LOLEK</a> ·
+    <a href="https://cityon.pl/miejsce/filtry-cafe-niemcewicza-3-warszawa">Filtry Café</a> ·
+    <a href="https://jeffs.com/nasze-lokale/pole-mokotowskie-warszawa">Jeff's</a>.
+    14.06 to zwykła sobota (nie święto) — godziny standardowe. Przed wizytą warto potwierdzić telefonicznie. Smacznego! 🐾
+  </footer>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script src="routes-data.js"></script>
+<script>
+(function(){
+  var HOME_TY=[52.2378642,20.9328561], HOME_MA=[52.1917692,20.9902891];
+  var V={
+    shuk:{ll:[52.2065539,20.9736058], color:'#b54a26', n:'①', name:'SHUK mezze & bar', info:'Grójecka 107 · 🥙 · 🐾 · sob. 10–24'},
+    sato:{ll:[52.2038129,20.9750101], color:'#7a5a96', n:'②', name:'SATO gotuje', info:'Pawińskiego 24 · 🍜 udon · sob. 13–21'},
+    lolek:{ll:[52.2117627,20.9934909], color:'#3e6b48', n:'③', name:'LOLEK grill & bar', info:'Rokitnicka 20 · 🍖 · 🐾🐾 park · sob. 11–późno'},
+    filtry:{ll:[52.2200061,20.9878347], color:'#a8833b', n:'④', name:'Filtry Café', info:'Niemcewicza 3 · ☕ · 🐾🐾 · sob. 9–21'}
+  };
+  var JEFFS=[52.2109809,20.9891160];
+  // metro M1: Wierzbno → Racławicka → Pole Mokotowskie → Politechnika
+  var M1=[[52.1888401,21.0176096],[52.1993465,21.0121715],[52.2074494,21.0070902],[52.2199124,21.0146711]];
+  var M1names=['M1 Wierzbno','M1 Racławicka','M1 Pole Mokotowskie','M1 Politechnika'];
+  // korytarz tramwajowy Ochoty (Grójecka → Narutowicza → pl. Zawiszy → Towarowa) — obsługuje SHUK
+  var TRAM=[[52.2065539,20.9736058],[52.2105,20.9788],[52.2189539,20.984598],[52.2247888,20.9886965],[52.2300827,20.9828946]];
+
+  var map=L.map('map',{scrollWheelZoom:false}).setView([52.213,20.972],13);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
+    maxZoom:19, attribution:'© OpenStreetMap'
+  }).addTo(map);
+  map.on('click',function(){ map.scrollWheelZoom.enable(); });
+
+  function divIcon(cls,html,size){ return L.divIcon({className:'',html:'<div class="mk '+cls+'">'+html+'</div>',iconSize:size,iconAnchor:[size[0]/2,size[1]/2]}); }
+
+  // INFRA: metro + tram (zawsze widoczne)
+  L.polyline(M1,{color:'#1f7a3a',weight:5,opacity:.8}).addTo(map).bindPopup('Metro M1 — naturalna oś dojazdu mamy');
+  M1.forEach(function(p,i){ L.marker(p,{icon:divIcon('mk-metro','M',[18,18])}).addTo(map).bindPopup(M1names[i]); });
+  L.polyline(TRAM,{color:'#c1502e',weight:4,opacity:.75,dashArray:'8 7'}).addTo(map).bindPopup('Korytarz tramwajowy Grójecka/Ochota — obsługuje m.in. SHUK i pl. Narutowicza');
+
+  // domy
+  L.marker(HOME_TY,{icon:divIcon('mk-home','🏠',[30,30]),zIndexOffset:1000}).addTo(map).bindPopup('<b>Ty</b><br>Szańcowa, Wola');
+  L.marker(HOME_MA,{icon:divIcon('mk-home','🏠',[30,30]),zIndexOffset:1000}).addTo(map).bindPopup('<b>Mama</b><br>Etiudy Rewolucyjnej, Mokotów');
+  // Jeff's (plan B)
+  L.marker(JEFFS,{icon:divIcon('','<div class="mk" style="background:#8a6d3b;width:22px;height:22px;font-size:12px">★</div>',[22,22])}).addTo(map).bindPopup('<b>Jeff\'s</b> (plan B)<br>Żwirki i Wigury 32 · burgery/żeberka');
+
+  // lokale — markery
+  var venueMarkers={};
+  Object.keys(V).forEach(function(k){
+    var v=V[k];
+    var m=L.marker(v.ll,{icon:divIcon('','<div class="mk" style="background:'+v.color+';width:30px;height:30px;font-size:15px">'+v.n+'</div>',[30,30]),zIndexOffset:900}).addTo(map);
+    m.bindPopup('<b>'+v.name+'</b><br>'+v.info+'<br>🚗 Ty ~'+DRIVE['ty_'+k].min+' min · Mama ~'+DRIVE['ma_'+k].min+' min<br>'+
+      '<a target="_blank" href="https://www.google.com/maps/dir/?api=1&origin='+HOME_TY+'&destination='+v.ll+'&travelmode=driving">nawiguj (Ty)</a> · '+
+      '<a target="_blank" href="https://www.google.com/maps/dir/?api=1&origin='+HOME_MA+'&destination='+v.ll+'&travelmode=driving">nawiguj (Mama)</a>');
+    m.on('click',function(){ select(k); });
+    venueMarkers[k]=m;
+  });
+
+  // warstwy tras autem
+  var driveLayers={};
+  Object.keys(V).forEach(function(k){
+    var g=L.layerGroup();
+    L.polyline(DRIVE['ty_'+k].coords,{color:'#e8761f',weight:6,opacity:.9}).addTo(g);
+    L.polyline(DRIVE['ma_'+k].coords,{color:'#2b5ea7',weight:6,opacity:.9}).addTo(g);
+    driveLayers[k]=g;
+  });
+
+  var current=null;
+  function clearAll(){ Object.keys(driveLayers).forEach(function(k){ map.removeLayer(driveLayers[k]); }); }
+  function setBtns(active){ document.querySelectorAll('.vbtn').forEach(function(b){ b.classList.toggle('on', b.getAttribute('data-v')===active); }); }
+
+  function select(k){
+    clearAll();
+    if(k==='all'){
+      Object.keys(driveLayers).forEach(function(j){ driveLayers[j].addTo(map); });
+      map.fitBounds(L.latLngBounds([HOME_TY,HOME_MA,V.shuk.ll,V.sato.ll,V.lolek.ll,V.filtry.ll]).pad(0.12));
+      setBtns('all'); current='all'; return;
+    }
+    driveLayers[k].addTo(map);
+    map.fitBounds(L.latLngBounds([HOME_TY,HOME_MA,V[k].ll]).pad(0.18));
+    venueMarkers[k].openPopup();
+    setBtns(k); current=k;
+  }
+
+  document.querySelectorAll('.vbtn').forEach(function(b){
+    b.addEventListener('click',function(){ select(b.getAttribute('data-v')); });
+  });
+
+  select('shuk'); // domyślnie rekomendacja
+})();
+</script>
+</body>
+</html>
